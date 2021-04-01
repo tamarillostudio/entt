@@ -649,7 +649,7 @@ TEST(MultiComponentView, EachWithSuggestedType) {
     const auto entity = registry.create();
     registry.emplace<int>(entity, 99);
 
-    registry.view<int, char>().each<int>([value = 2](const auto curr, const auto) mutable {
+    registry.view<int, char>().use<int>().each([value = 2](const auto curr, const auto) mutable {
         ASSERT_EQ(curr, value--);
     });
 
@@ -657,7 +657,7 @@ TEST(MultiComponentView, EachWithSuggestedType) {
         return lhs < rhs;
     });
 
-    registry.view<int, char>().each<int>([value = 0](const auto curr, const auto) mutable {
+    registry.view<int, char>().use<int>().each([value = 0](const auto curr, const auto) mutable {
         ASSERT_EQ(curr, value++);
     });
 
@@ -677,7 +677,7 @@ TEST(MultiComponentView, EachWithSuggestedType) {
 
     value = {};
 
-    for(auto &&curr: registry.view<int, char>().each<int>()) {
+    for(auto &&curr: registry.view<int, char>().use<int>().each()) {
         ASSERT_EQ(std::get<1>(curr), static_cast<int>(value++));
     }
 }
@@ -882,23 +882,23 @@ TEST(MultiComponentView, EmptyTypes) {
         ASSERT_EQ(entity, entt);
     }
 
-    registry.view<empty_type, int, char>(entt::exclude<double>).each<empty_type>([entity](const auto entt, int, char) {
+    registry.view<empty_type, int, char>(entt::exclude<double>).use<empty_type>().each([entity](const auto entt, int, char) {
         ASSERT_EQ(entity, entt);
     });
 
-    for(auto [entt, iv, cv]: registry.view<empty_type, int, char>(entt::exclude<double>).each<empty_type>()) {
+    for(auto [entt, iv, cv]: registry.view<empty_type, int, char>(entt::exclude<double>).use<empty_type>().each()) {
         static_assert(std::is_same_v<decltype(entt), entt::entity>);
         static_assert(std::is_same_v<decltype(iv), int &>);
         static_assert(std::is_same_v<decltype(cv), char &>);
         ASSERT_EQ(entity, entt);
     }
 
-    registry.view<int, empty_type, char>(entt::exclude<double>).each<empty_type>([check = true](int, char) mutable {
+    registry.view<int, empty_type, char>(entt::exclude<double>).use<empty_type>().each([check = true](int, char) mutable {
         ASSERT_TRUE(check);
         check = false;
     });
 
-    for(auto [entt, iv, cv]: registry.view<int, empty_type, char>(entt::exclude<double>).each<empty_type>()) {
+    for(auto [entt, iv, cv]: registry.view<int, empty_type, char>(entt::exclude<double>).use<empty_type>().each()) {
         static_assert(std::is_same_v<decltype(entt), entt::entity>);
         static_assert(std::is_same_v<decltype(iv), int &>);
         static_assert(std::is_same_v<decltype(cv), char &>);
