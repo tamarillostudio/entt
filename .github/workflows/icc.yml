@@ -1,0 +1,36 @@
+name: icc
+
+on: push
+
+jobs:
+
+  icc:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install icc
+      run: |
+        wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+        sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+        echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+        sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+        sudo apt-get update
+        sudo apt-get install intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
+    - name: Compile tests
+      working-directory: build
+      id: compile
+      env:
+        CXX: icc
+      run: |
+        source /opt/intel/oneapi/setvars.sh intel64
+        cmake -DENTT_BUILD_TESTING=ON -DENTT_BUILD_LIB=ON -DENTT_BUILD_EXAMPLE=ON ..
+        make -j4
+      continue-on-error: true
+    - name: Run tests
+      if: steps.compile.outcome == 'success'
+      working-directory: build
+      env:
+        CTEST_OUTPUT_ON_FAILURE: 1
+      run: ctest --timeout 10 -C Debug -j4

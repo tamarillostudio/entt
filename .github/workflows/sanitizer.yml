@@ -6,11 +6,6 @@ jobs:
 
   linux:
     timeout-minutes: 10
-
-    strategy:
-      matrix:
-        compiler: [clang++]
-
     runs-on: ubuntu-latest
 
     steps:
@@ -18,7 +13,7 @@ jobs:
     - name: Compile tests
       working-directory: build
       env:
-        CXX: ${{ matrix.compiler }}
+        CXX: clang++
       run: |
         cmake -DENTT_USE_SANITIZER=ON -DENTT_BUILD_TESTING=ON -DENTT_BUILD_LIB=ON -DENTT_BUILD_EXAMPLE=ON ..
         make -j4
