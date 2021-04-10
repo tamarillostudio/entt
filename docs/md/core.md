@@ -102,17 +102,17 @@ using id = entt::family<struct my_tag>;
 
 // ...
 
-const auto a_type_id = id::type<a_type>;
-const auto another_type_id = id::type<another_type>;
+const auto a_type_id = id::type<a_type>();
+const auto another_type_id = id::type<another_type>();
 ```
 
-This is all what a _family_ has to offer: a `type` inline variable that contains
-a numeric identifier for the given type.<br/>
+This is all what a _family_ has to offer: a `type` function that returns a
+numeric identifier for the given type.<br/>
 The generator is customizable, so as to get different _sequences_ for different
 purposes if needed.
 
 Please, note that identifiers aren't guaranteed to be stable across different
-runs. Indeed it mostly depends on the flow of execution.
+runs nor across boundaries. This mostly depends on the flow of execution.
 
 # Hashed strings
 
