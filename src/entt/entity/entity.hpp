@@ -147,6 +147,58 @@ struct null_t {
 };
 
 
+/*! @brief Tombstone object for all entity identifiers.  */
+struct tombstone_t {
+    /**
+     * @brief Converts the tombstone object to identifiers of any type.
+     * @tparam Entity Type of entity identifier.
+     * @return The tombstone representation for the given identifier.
+     */
+    template<typename Entity>
+    [[nodiscard]] constexpr operator Entity() const ENTT_NOEXCEPT {
+        return Entity{entt_traits<Entity>::version_mask << entt_traits<Entity>::entity_shift};
+    }
+
+    /**
+     * @brief Compares two tombstone objects.
+     * @return True in all cases.
+     */
+    [[nodiscard]] constexpr bool operator==(const tombstone_t &) const ENTT_NOEXCEPT {
+        return true;
+    }
+
+    /**
+     * @brief Compares two tombstone objects.
+     * @return False in all cases.
+     */
+    [[nodiscard]] constexpr bool operator!=(const tombstone_t &) const ENTT_NOEXCEPT {
+        return false;
+    }
+
+    /**
+     * @brief Compares a tombstone object and an entity identifier of any type.
+     * @tparam Entity Type of entity identifier.
+     * @param entity Entity identifier with which to compare.
+     * @return False if the two elements differ, true otherwise.
+     */
+    template<typename Entity>
+    [[nodiscard]] constexpr bool operator==(const Entity &entity) const ENTT_NOEXCEPT {
+        return (to_integral(entity) & (entt_traits<Entity>::version_mask << entt_traits<Entity>::entity_shift)) == to_integral(static_cast<Entity>(*this));
+    }
+
+    /**
+     * @brief Compares a tombstone object and an entity identifier of any type.
+     * @tparam Entity Type of entity identifier.
+     * @param entity Entity identifier with which to compare.
+     * @return True if the two elements differ, false otherwise.
+     */
+    template<typename Entity>
+    [[nodiscard]] constexpr bool operator!=(const Entity &entity) const ENTT_NOEXCEPT {
+        return !(entity == *this);
+    }
+};
+
+
 /**
  * @brief Compares a null object and an entity identifier of any type.
  * @tparam Entity Type of entity identifier.
@@ -174,6 +226,32 @@ template<typename Entity>
 
 
 /**
+ * @brief Compares a tombstone object and an entity identifier of any type.
+ * @tparam Entity Type of entity identifier.
+ * @param entity Entity identifier with which to compare.
+ * @param other A tombstone object yet to be converted.
+ * @return False if the two elements differ, true otherwise.
+ */
+template<typename Entity>
+[[nodiscard]] constexpr bool operator==(const Entity &entity, const tombstone_t &other) ENTT_NOEXCEPT {
+    return other.operator==(entity);
+}
+
+
+/**
+ * @brief Compares a tombstone object and an entity identifier of any type.
+ * @tparam Entity Type of entity identifier.
+ * @param entity Entity identifier with which to compare.
+ * @param other A tombstone object yet to be converted.
+ * @return True if the two elements differ, false otherwise.
+ */
+template<typename Entity>
+[[nodiscard]] constexpr bool operator!=(const Entity &entity, const tombstone_t &other) ENTT_NOEXCEPT {
+    return !(other == entity);
+}
+
+
+/**
  * Internal details not to be documented.
  * @endcond
  */
@@ -187,6 +265,16 @@ template<typename Entity>
  * null entity and any other entity identifier.
  */
 inline constexpr null_t null{};
+
+
+/**
+ * @brief Compile-time constant for tombstone entities.
+ *
+ * There exist implicit conversions from this variable to entity identifiers of
+ * any allowed type. Similarly, there exist comparision operators between the
+ * tombstone entity and any other entity identifier.
+ */
+inline constexpr tombstone_t tombstone{};
 
 
 }

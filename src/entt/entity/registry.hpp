@@ -142,6 +142,7 @@ class basic_registry {
     void release_entity(const Entity entity, const typename traits_type::version_type version) {
         const auto entt = to_integral(entity) & traits_type::entity_mask;
         entities[entt] = entity_type{to_integral(available) | (typename traits_type::entity_type{version} << traits_type::entity_shift)};
+        ENTT_ASSERT(entities[entt] != tombstone, "Cannot set a tombstone version");
         available = entity_type{entt};
     }
 
@@ -404,6 +405,7 @@ public:
      */
     [[nodiscard]] entity_type create(const entity_type hint) {
         ENTT_ASSERT(hint != null, "Null entity not available");
+        ENTT_ASSERT(hint != tombstone, "Cannot set a tombstone version");
         entity_type entt;
 
         if(const auto req = (to_integral(hint) & traits_type::entity_mask); !(req < entities.size())) {
@@ -481,7 +483,9 @@ public:
      * @param entity A valid entity identifier.
      */
     void destroy(const entity_type entity) {
-        destroy(entity, static_cast<typename traits_type::version_type>(version(entity) + 1u));
+        const auto next = version(entity) + 1u;
+        // skips the tombstone version and overflows to 0
+        destroy(entity, static_cast<typename traits_type::version_type>(next + (next == traits_type::version_mask)));
     }
 
     /**

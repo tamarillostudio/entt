@@ -530,11 +530,38 @@ TEST(Registry, VersionOverflow) {
     entt::registry registry;
     const auto entity = registry.create();
 
-    registry.destroy(entity, typename traits_type::version_type(traits_type::version_mask));
+    ASSERT_DEATH((registry.destroy(entity, typename traits_type::version_type{traits_type::version_mask})), "");
+
+    registry.destroy(entity, typename traits_type::version_type{traits_type::version_mask - 1u});
     registry.destroy(registry.create());
 
     ASSERT_EQ(registry.current(entity), registry.version(entity));
     ASSERT_EQ(registry.current(entity), typename traits_type::version_type{});
+}
+
+TEST(Registry, NullEntity) {
+    entt::registry registry;
+
+    ASSERT_FALSE(registry.valid(entt::null));
+    ASSERT_DEATH(static_cast<void>(registry.create(entt::null)), "");
+}
+
+TEST(Registry, Tombstone) {
+    using traits_type = entt::entt_traits<entt::entity>;
+
+    entt::registry registry;
+    auto entity = registry.create();
+
+    ASSERT_FALSE(entity == entt::tombstone);
+    ASSERT_EQ(entt::registry::version(entity), typename traits_type::version_type{});
+    ASSERT_DEATH((registry.destroy(entity, traits_type::version_mask)), "");
+
+    registry.destroy(entity, typename traits_type::version_type{traits_type::version_mask - 1u});
+    registry.destroy(registry.create());
+
+    ASSERT_EQ(registry.current(entity), registry.version(entity));
+    ASSERT_EQ(registry.current(entity), typename traits_type::version_type{});
+    ASSERT_DEATH((entity = registry.create(entt::tombstone)), "");
 }
 
 TEST(Registry, Each) {
