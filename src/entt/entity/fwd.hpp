@@ -2,13 +2,14 @@
 #define ENTT_ENTITY_FWD_HPP
 
 
+#include <memory>
 #include "../core/fwd.hpp"
 
 
 namespace entt {
 
 
-template<typename>
+template<typename Entity, typename = std::allocator<Entity>>
 class basic_sparse_set;
 
 
